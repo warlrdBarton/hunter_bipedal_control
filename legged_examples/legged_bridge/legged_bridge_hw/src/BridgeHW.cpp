@@ -46,7 +46,7 @@ void BridgeHW::read(const ros::Time& time, const ros::Duration& period)
   imuData_.ori[1] = -imuData_recv.quat_float[1];
   imuData_.ori[2] = imuData_recv.quat_float[3];
   imuData_.ori[3] = imuData_recv.quat_float[0];
-  imuData_.angular_vel[0] = imuData_recv.gyro_float[1];  
+  imuData_.angular_vel[0] =  imuData_recv.gyro_float[1];  
   imuData_.angular_vel[1] = -imuData_recv.gyro_float[0];
   imuData_.angular_vel[2] = imuData_recv.gyro_float[2];
   imuData_.linear_acc[0] = imuData_recv.accel_float[1];   

@@ -11,7 +11,7 @@ at www.bridgedp.com.
 ********************************************************************************/
 
 #include "legged_hw/LeggedHW.h"
-
+#include "hardware/robot.h"
 namespace legged
 {
 bool LeggedHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& /*robot_hw_nh*/)

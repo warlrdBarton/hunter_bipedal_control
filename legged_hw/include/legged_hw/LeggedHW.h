@@ -26,6 +26,7 @@ at www.bridgedp.com.
 #include <hardware_interface/robot_hw.h>
 #include <legged_common/hardware_interface/ContactSensorInterface.h>
 #include <legged_common/hardware_interface/HybridJointInterface.h>
+#include "hardware/robot.h"
 
 namespace legged
 {
@@ -52,6 +53,7 @@ protected:
   ContactSensorInterface contactSensorInterface_;                // NOLINT(misc-non-private-member-variables-in-classes)
   // URDF model of the robot
   std::shared_ptr<urdf::Model> urdfModel_;  // NOLINT(misc-non-private-member-variables-in-classes)
+  robot rb;
 
 private:
   /** \brief Load urdf of robot from param server.

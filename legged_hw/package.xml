@@ -14,4 +14,5 @@
     <depend>legged_common</depend>
     <depend>controller_manager</depend>
     <depend>urdf</depend>
+    <depend>livelybot_serial</depend>
 </package>
