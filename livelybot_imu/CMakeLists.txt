@@ -30,9 +30,7 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-# set(SERIAL_LIB /opt/ros/kinetic/lib/libserial.so)
-# set(SERIAL_LIB_PATH /opt/ros/kinetic/lib)
-# link_directories(${SERIAL_LIB_PATH})
+
 set(imu_SRCS
     include/ahrs_driver.h
     include/crc_table.h
