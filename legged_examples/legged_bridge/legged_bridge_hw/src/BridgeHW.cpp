@@ -32,29 +32,25 @@ bool BridgeHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
   return true;
 }
 
-void BridgeHW::read(const ros::Time& time, const ros::Duration& period)
+void BridgeHW::read(const ros::Time &time, const ros::Duration &period)
 {
-  EtherCAT_Get_State();
-  for (int i = 0; i < 12; i++)
+  size_t idx = 0;
+  for (motor *m : motorsInterface->Motors)
   {
-    jointData_[i].pos_ = (motorDate_recv[i].pos_ - baseMotor_[i]) * directionMotor_[i];
-    jointData_[i].vel_ = motorDate_recv[i].vel_ * directionMotor_[i];
-    jointData_[i].tau_ = motorDate_recv[i].tau_ * directionMotor_[i];
+    motor_back_t motor;
+    motor = *m->get_current_motor_state();
+    jointData_[idx].pos_ = (motor.position - baseMotor_[idx]) * directionMotor_[idx];
+    jointData_[idx].vel_ = motor.velocity * directionMotor_[idx];
+    jointData_[idx].tau_ = motor.torque * directionMotor_[idx];
+    ++idx;
+    // ROS_INFO("ID:%d pos: %8f,vel: %8f,tor: %8f", motor.ID, motor.position, motor.velocity, motor.velocity);
   }
-
-  imuData_.ori[0] = imuData_recv.quat_float[2];          
-  imuData_.ori[1] = -imuData_recv.quat_float[1];
-  imuData_.ori[2] = imuData_recv.quat_float[3];
-  imuData_.ori[3] = imuData_recv.quat_float[0];
-  imuData_.angular_vel[0] =  imuData_recv.gyro_float[1];  
-  imuData_.angular_vel[1] = -imuData_recv.gyro_float[0];
-  imuData_.angular_vel[2] = imuData_recv.gyro_float[2];
-  imuData_.linear_acc[0] = imuData_recv.accel_float[1];   
-  imuData_.linear_acc[1] = -imuData_recv.accel_float[0];
-  imuData_.linear_acc[2] = imuData_recv.accel_float[2];
+  imuInterface->getLastImuDate(imuData_.ori[0], imuData_.ori[1], imuData_.ori[2], imuData_.ori[3], \
+                               imuData_.angular_vel[0], imuData_.angular_vel[1], imuData_.angular_vel[2], \
+                               imuData_.linear_acc[0], imuData_.linear_acc[1], imuData_.linear_acc[2]);
 
   std::vector<std::string> names = hybridJointInterface_.getNames();
-  for (const auto& name : names)
+  for (const auto &name : names)
   {
     HybridJointHandle handle = hybridJointInterface_.getHandle(name);
     handle.setFeedforward(0.);
@@ -84,7 +80,15 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
       yksSendcmd_[i].ff_ = jointData_[i].ff_ * directionMotor_[i];
     }
   }
-  EtherCAT_Send_Command((YKSMotorData*)yksSendcmd_);
+  size_t idx=0;
+  for (motor *m : motorsInterface->Motors)
+  {
+
+    m->fresh_cmd(yksSendcmd_[idx].pos_des_,  yksSendcmd_[idx].vel_des_, 0.0,  yksSendcmd_[idx].kp_, yksSendcmd_[idx].kd_ );
+  }
+  motorsInterface->motor_send();
+  
+  // EtherCAT_Send_Command((YKSMotorData*)yksSendcmd_);
 }
 
 bool BridgeHW::setupJoints()

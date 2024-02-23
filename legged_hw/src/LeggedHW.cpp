@@ -11,7 +11,6 @@ at www.bridgedp.com.
 ********************************************************************************/
 
 #include "legged_hw/LeggedHW.h"
-#include "hardware/robot.h"
 namespace legged
 {
 bool LeggedHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& /*robot_hw_nh*/)
@@ -22,10 +21,13 @@ bool LeggedHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& /*robot_hw_nh*/)
     return false;
   }
 
-  registerInterface(&jointStateInterface_);
+  // registerInterface(&jointStateInterface_);
   registerInterface(&hybridJointInterface_);
-  registerInterface(&imuSensorInterface_);
+  // registerInterface(&imuSensorInterface_);
   registerInterface(&contactSensorInterface_);
+
+  motorsInterface=std::make_shared<lively_robot::robot>();
+  imuInterface=std::make_shared<FDILink::ahrsBringup>();
 
   return true;
 }

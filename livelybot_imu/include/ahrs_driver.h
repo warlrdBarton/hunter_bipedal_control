@@ -17,7 +17,7 @@
 #include <string>
 #include <ros/package.h>
 #include <crc_table.h>
-
+#include <shared_mutex>
 
 using namespace std;
 
@@ -50,8 +50,14 @@ public:
   void checkSN(int type);
   void magCalculateYaw(double roll, double pitch, double &magyaw, double magx, double magy, double magz);
   ros::NodeHandle nh_;
+  void getLastImuDate(double &q_w, double &q_x, double &q_y, double &q_z, double &ang_x, double &ang_y, double &ang_z, double &acc_x, double &acc_y, double &acc_z);
 
 private:
+
+  mutable std::shared_mutex rwMutex;
+  sensor_msgs::Imu last_imu_data;
+
+
   bool if_debug_;
   //sum info
   int sn_lost_ = 0;

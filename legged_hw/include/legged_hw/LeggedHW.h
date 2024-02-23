@@ -27,6 +27,8 @@ at www.bridgedp.com.
 #include <legged_common/hardware_interface/ContactSensorInterface.h>
 #include <legged_common/hardware_interface/HybridJointInterface.h>
 #include "hardware/robot.h"
+#include <ahrs_driver.h>
+#include "motor_struct.h"
 
 namespace legged
 {
@@ -53,7 +55,9 @@ protected:
   ContactSensorInterface contactSensorInterface_;                // NOLINT(misc-non-private-member-variables-in-classes)
   // URDF model of the robot
   std::shared_ptr<urdf::Model> urdfModel_;  // NOLINT(misc-non-private-member-variables-in-classes)
-  robot rb;
+  std::shared_ptr<lively_robot::robot> motorsInterface;
+  std::shared_ptr<FDILink::ahrsBringup> imuInterface;
+
 
 private:
   /** \brief Load urdf of robot from param server.

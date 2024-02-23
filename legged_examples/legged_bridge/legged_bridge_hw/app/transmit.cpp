@@ -9,6 +9,7 @@ extern "C" {
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
+#include <motor_struct.h>
 
 #define EC_TIMEOUTM
 
@@ -416,6 +417,8 @@ void EtherCAT_Get_State()
   }
   wkc_err_iteration_count++;
 }
+
+
 
 void EtherCAT_Send_Command(YKSMotorData* mot_data)
 {

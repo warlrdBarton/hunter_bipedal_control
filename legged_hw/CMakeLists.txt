@@ -3,12 +3,15 @@ project(legged_hw)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")  
 find_package(catkin REQUIRED
         COMPONENTS
         roscpp
         legged_common
         controller_manager
         urdf
+        livelybot_serial
+        livelybot_imu
         )
 
 catkin_package(
@@ -21,6 +24,8 @@ catkin_package(
         legged_common
         controller_manager
         urdf
+        livelybot_serial
+        livelybot_imu
 )
 
 ###########

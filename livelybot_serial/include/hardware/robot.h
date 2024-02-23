@@ -4,6 +4,9 @@
 #include "canboard.h"
 #include "ros/ros.h"
 #include <thread>
+
+namespace lively_robot{
+
 class robot
 {
 private:
@@ -142,4 +145,6 @@ public:
     }
     ~robot() {}
 };
+
+}
 #endif

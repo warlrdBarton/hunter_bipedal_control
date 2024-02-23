@@ -4,16 +4,16 @@ namespace FDILink
 {
 ahrsBringup::ahrsBringup() :frist_sn_(false), serial_timeout_(20)
 {
-  ros::NodeHandle pravite_nh("~");
+  ros::NodeHandle private_nh("~");
   //topic_name & frame_id
-  pravite_nh.param("debug",     if_debug_,  false);
-  pravite_nh.param("device_type", device_type_, 1); // default: single imu
-  pravite_nh.param("imu_topic", imu_topic_, std::string("/imu"));
-  pravite_nh.param("imu_frame", imu_frame_id_, std::string("imu")); 
-  pravite_nh.param("mag_pose_2d_topic", mag_pose_2d_topic_, std::string("/mag_pose_2d"));
+  private_nh.param("debug",     if_debug_,  false);
+  private_nh.param("device_type", device_type_, 1); // default: single imu
+  private_nh.param("imu_topic", imu_topic_, std::string("/imu"));
+  private_nh.param("imu_frame", imu_frame_id_, std::string("imu")); 
+  private_nh.param("mag_pose_2d_topic", mag_pose_2d_topic_, std::string("/mag_pose_2d"));
   //serial                                                 
-  pravite_nh.param("port", serial_port_, std::string("/dev/ttyTHS1")); 
-  pravite_nh.param("baud", serial_baud_, 921600);
+  private_nh.param("port", serial_port_, std::string("/dev/ttyTHS1")); 
+  private_nh.param("baud", serial_baud_, 921600);
   //publisher
   imu_pub_ = nh_.advertise<sensor_msgs::Imu>(imu_topic_.c_str(), 10);
   gps_pub_ = nh_.advertise<sensor_msgs::NavSatFix>("/gps/fix", 10);
@@ -52,6 +52,21 @@ ahrsBringup::~ahrsBringup()
 {
   if (serial_.isOpen())
     serial_.close();
+}
+
+void ahrsBringup::getLastImuDate(double &q_w, double &q_x, double &q_y, double &q_z, double &ang_x, double &ang_y, double &ang_z, double &acc_x, double &acc_y, double &acc_z)
+{
+  std::lock_guard<std::shared_mutex> guard(rwMutex);
+  q_w = last_imu_data.orientation.w;
+  q_x = last_imu_data.orientation.x;
+  q_y = last_imu_data.orientation.y;
+  q_z = last_imu_data.orientation.z;
+  ang_x = last_imu_data.angular_velocity.x;
+  ang_y = last_imu_data.angular_velocity.y;
+  ang_z = last_imu_data.angular_velocity.z;
+  acc_x = last_imu_data.linear_acceleration.x;
+  acc_y = last_imu_data.linear_acceleration.y;
+  acc_z = last_imu_data.linear_acceleration.z;
 }
 
 void ahrsBringup::processLoop()
@@ -435,6 +450,12 @@ void ahrsBringup::processLoop()
         imu_data.linear_acceleration.y = -imu_frame_.frame.data.data_pack.accelerometer_y;
         imu_data.linear_acceleration.z = -imu_frame_.frame.data.data_pack.accelerometer_z;
       }
+
+      {
+        std::unique_lock<std::shared_mutex> writeLock(rwMutex);
+        last_imu_data=imu_data;
+      }
+
       imu_pub_.publish(imu_data);
 
       Eigen::Quaterniond rpy_q(imu_data.orientation.w,
