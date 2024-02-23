@@ -9,6 +9,9 @@ namespace legged
 {
 bool BridgeHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
 {
+
+  motorsInterface=std::make_shared<lively_robot::robot>();
+  imuInterface=std::make_shared<FDILink::ahrsBringup>();
   root_nh.setParam("gsmp_controller_switch", "null");
   int ec_slavecount = EtherCAT_Init("enp45s0");
   std::cout << "开始EtherCAT初始化" << std::endl;
@@ -26,7 +29,7 @@ bool BridgeHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
     return false;
 
   robot_hw_nh.getParam("power_limit", powerLimit_);
-
+   
   setupJoints();
   setupImu();
   return true;
