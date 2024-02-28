@@ -2,7 +2,7 @@
 
 <launch>
     <arg name="robot_type" default="hunter" doc="Robot type: [hunter]"/>
-    <arg name="rviz" default="true"/>
+    <arg name="rviz" default="false"/>
     <arg name="record_data" default="false"/>
 
     <include file="$(find legged_hunter_description)/launch/empty_world.launch"/>

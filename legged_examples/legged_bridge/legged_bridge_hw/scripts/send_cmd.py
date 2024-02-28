@@ -33,7 +33,7 @@ class KeyboardController:
             pass
 
     def on_release(self, key):
-        self.twist_msg.linear.x = 0.35
+        self.twist_msg.linear.x = 0.0
         self.twist_msg.angular.z = 0.0
 
 def ros_publish():
