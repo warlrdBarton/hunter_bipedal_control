@@ -7,7 +7,7 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 <robot name="hunter">
 	<mujoco>
     <compiler 
-    meshdir="package://legged_hunter_description/meshes_pi/" 
+    meshdir="../meshes_pi/" 
     balanceinertia="true" 
     discardvisual="false" />
     </mujoco>
@@ -96,11 +96,11 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 
 	<!-- yaw L2 -->
 	<joint name="leg_r2_joint" type="revolute">
-		<origin xyz="0 -0.045 0" rpy="3.1416 0 -1.5708" />
+		<origin xyz="0 -0.075 0" rpy="3.1416 0 -1.5708" />
 		<parent link="base_link" />
 		<child link="leg_r2_link" />
 		<axis xyz="0 0 -1" />
-		<limit lower="-1.0" upper="1.0" effort="15" velocity="20" />
+		<limit lower="-1" upper="0.5" effort="15" velocity="20" />
 	</joint>
 	<link name="leg_r2_link">
 		<inertial>
@@ -138,7 +138,7 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 		<parent link="leg_r2_link" />
 		<child link="leg_r1_link" />
 		<axis xyz="0 0 1" />
-		<limit lower="-1.0" upper="1.0" effort="15" velocity="20" />
+		<limit lower="-0.5" upper="0.2" effort="15" velocity="20" />
 	</joint>
 
 	<link name="leg_r1_link">
@@ -179,7 +179,7 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 		<parent link="leg_r1_link" />
 		<child link="leg_r3_link" />
 		<axis xyz="0 0 1" />
-		<limit lower="-1.15" upper="0.7854" effort="15" velocity="21"  />
+		<limit lower="-1.2" upper="0.8" effort="15" velocity="21"  />
 	</joint>
 	<link name="leg_r3_link">
 		<inertial>
@@ -216,8 +216,8 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 		<origin xyz="0.15 0 0" rpy="-3.1416 0 0" />
 		<parent link="leg_r3_link" />
 		<child link="leg_r4_link" />
-		<axis xyz="0 0 1" />
-		<limit lower="-1.5" upper="0.0" effort="15" velocity="20" />
+		<axis xyz="0 0 -1" />
+		<limit lower="0" upper="1.5" effort="15" velocity="20" />
 	</joint>
 
 	<link name="leg_r4_link">
@@ -256,7 +256,7 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 		<parent link="leg_r4_link" />
 		<child link="leg_r5_link" />
 		<axis xyz="0 0 1" />
-		<limit lower="-0.75" upper="0.75" effort="15" velocity="20" />
+		<limit lower="-1.1" upper="1.1" effort="15" velocity="20" />
 	</joint>
 	<link name="leg_r5_link">
 		<inertial>
@@ -463,11 +463,11 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
   <!-- ************* part 1 *************** -->
 
 	<joint name="leg_l2_joint" type="revolute">
-		<origin xyz="0 0.045 0" rpy="-3.1416 0 -3.1416" />
+		<origin xyz="0 0.075 0" rpy="-3.1416 0 -3.1416" />
 		<parent link="base_link" />
 		<child link="leg_l2_link" />
-		<axis xyz="0 0 1" />
-		<limit lower="-1.0" upper="1.0" effort="15" velocity="20" />
+		<axis xyz="0 0 -1" />
+		<limit lower="-0.5" upper="1" effort="15" velocity="20" />
 	</joint>
   <link name="leg_l2_link">
 		<inertial>
@@ -505,7 +505,7 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 		<parent link="leg_l2_link" />
 		<child link="leg_l1_link" />
 		<axis xyz="0 0 1" />
-		<limit lower="-1.0" upper="1.0" effort="15" velocity="20" />
+		<limit lower="-0.2" upper="0.5" effort="15" velocity="20" />
 	</joint>
 
 	<link name="leg_l1_link">
@@ -544,7 +544,7 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 		<parent link="leg_l1_link" />
 		<child link="leg_l3_link" />
 		<axis xyz="0 0 1" />
-		<limit lower="-0.7854" upper="1.15" effort="15" velocity="20" />
+		<limit lower="-0.8" upper="1.2" effort="15" velocity="20" />
 	</joint>
 
 	<link name="leg_l3_link">
@@ -615,7 +615,7 @@ For more information, please see http://wiki.ros.org/sw_urdf_exporter
 		<parent link="leg_l4_link" />
 		<child link="leg_l5_link" />
 		<axis xyz="0 0 1" />
-		<limit lower="-0.75" upper="0.75" effort="15" velocity="20" />
+		<limit lower="-1.1" upper="1.1" effort="15" velocity="20" />
 	</joint>
 
 	<link name="leg_l5_link">

@@ -14,7 +14,7 @@ defaultJointState
    (5,0)  -0.10   ; leg_r1_joint
    (6,0)   0.00   ; leg_r2_joint
    (7,0)  -0.40   ; leg_r3_joint
-   (8,0)   -0.93   ; leg_r4_joint
+   (8,0)   0.93   ; leg_r4_joint
    (9,0)  -0.53   ; leg_r5_joint
 }
 
