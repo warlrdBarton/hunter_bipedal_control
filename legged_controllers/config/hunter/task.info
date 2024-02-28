@@ -178,7 +178,7 @@ initialState
    (17,0) -0.10   ; leg_r1_joint
    (18,0)  0.00   ; leg_r2_joint
    (19,0) -0.40   ; leg_r3_joint
-   (20,0)  0.93   ; leg_r4_joint
+   (20,0)  -0.93   ; leg_r4_joint
    (21,0) -0.53   ; leg_r5_joint
 }
 
