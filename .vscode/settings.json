@@ -65,7 +65,12 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "bit": "cpp"
+        "bit": "cpp",
+        "*.ipp": "cpp",
+        "forward_list": "cpp",
+        "future": "cpp",
+        "core": "cpp",
+        "*.txx": "cpp"
     },
     "python.autoComplete.extraPaths": [
         "/home/sunteng/legged_ws/devel/lib/python3/dist-packages",
