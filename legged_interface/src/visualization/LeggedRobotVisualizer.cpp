@@ -244,10 +244,16 @@ void LeggedRobotVisualizer::publishJointTransforms(const ros::Time& timeStamp, c
 {
   if (robotStatePublisherPtr_ != nullptr)
   {
+    // std::map<std::string, scalar_t> jointPositions{
+    //   { "leg_l1_joint", jointAngles[0] }, { "leg_l2_joint", jointAngles[1] }, { "leg_l3_joint", jointAngles[2] },
+    //   { "leg_l4_joint", jointAngles[3] }, { "leg_l5_joint", jointAngles[4] }, { "leg_r1_joint", jointAngles[5] },
+    //   { "leg_r2_joint", jointAngles[6] }, { "leg_r3_joint", jointAngles[7] }, { "leg_r4_joint", jointAngles[8] },
+    //   { "leg_r5_joint", jointAngles[9] }
+    // };
     std::map<std::string, scalar_t> jointPositions{
-      { "leg_l1_joint", jointAngles[0] }, { "leg_l2_joint", jointAngles[1] }, { "leg_l3_joint", jointAngles[2] },
-      { "leg_l4_joint", jointAngles[3] }, { "leg_l5_joint", jointAngles[4] }, { "leg_r1_joint", jointAngles[5] },
-      { "leg_r2_joint", jointAngles[6] }, { "leg_r3_joint", jointAngles[7] }, { "leg_r4_joint", jointAngles[8] },
+      { "leg_l2_joint", jointAngles[0] }, { "leg_l1_joint", jointAngles[1] }, { "leg_l3_joint", jointAngles[2] },
+      { "leg_l4_joint", jointAngles[3] }, { "leg_l5_joint", jointAngles[4] }, { "leg_r2_joint", jointAngles[5] },
+      { "leg_r1_joint", jointAngles[6] }, { "leg_r3_joint", jointAngles[7] }, { "leg_r4_joint", jointAngles[8] },
       { "leg_r5_joint", jointAngles[9] }
     };
     robotStatePublisherPtr_->publishTransforms(jointPositions, timeStamp, tf_prefix);
