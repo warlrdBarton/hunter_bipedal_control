@@ -150,6 +150,18 @@ void LeggedController::update(const ros::Time& time, const ros::Duration& period
   // Evaluate the current policy
   vector_t optimizedState(stateDim_), optimizedInput(inputDim_);
 
+  // Determine if constraints should be added
+  if (isConstraintUpdateNeeded())
+  {
+    ROS_INFO_STREAM("Changing constraints...");
+    auto& softConstraintPtrCollection = mpc_->getSolverPtr()->getOptimalControlProblem().softConstraintPtr;
+    softConstraintPtrCollection->erase("StateInputLimitSoft");
+    softConstraintPtrCollection->add("StateInputLimitSoft", 
+                                     getLimitConstraints(leggedInterface_->getCentroidalModelInfo(),
+                                                         leggedInterface_->getPinocchioInterface(),
+                                                         leggedInterface_->getSwitchedModelReferenceManagerPtr()));
+  }
+
   size_t plannedMode = 0;
   bool mpc_updated_ = false;
   if (firstStartMpc_)

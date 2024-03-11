@@ -345,6 +345,10 @@ std::unique_ptr<StateInputCost> LeggedInterface::getLimitConstraints(const Centr
     state_input_limit_penalty[info.actuatedDofNum + j] =
         std::make_unique<DoubleSidedPenalty>(-model.velocityLimit(6 + j), model.velocityLimit(6 + j),
                                              std::make_unique<RelaxedBarrierPenalty>(vel_limit_barrier_penalty_config));
+    // if (j == 0 || j == 5) {
+    //     state_input_limit_penalty[j] = std::make_unique<DoubleSidedPenalty>(-0.1, 0.1,
+    //                                         std::make_unique<RelaxedBarrierPenalty>(pos_limit_barrier_penalty_config));
+    // }
   }
   for (int leg = 0; leg < info.numThreeDofContacts; leg++)
   {
