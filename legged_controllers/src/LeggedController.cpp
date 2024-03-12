@@ -36,6 +36,11 @@ at www.bridgedp.com.
 #include "legged_controllers/utilities.h"
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
+#include <std_msgs/Float64MultiArray.h>
+#include <chrono>
+
+
+
 namespace legged
 {
 bool LeggedController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& controller_nh)
@@ -49,6 +54,9 @@ bool LeggedController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHand
   controller_nh.getParam("/referenceFile", referenceFile);
   bool verbose = false;
   loadData::loadCppDataType(taskFile, "legged_robot_interface.verbose", verbose);
+
+  torque_pub = controller_nh.advertise<std_msgs::Float64MultiArray>("output_torque", 10);
+
 
   setupLeggedInterface(taskFile, urdfFile, referenceFile, verbose);
   setupMpc();
@@ -149,19 +157,6 @@ void LeggedController::update(const ros::Time& time, const ros::Duration& period
 
   // Evaluate the current policy
   vector_t optimizedState(stateDim_), optimizedInput(inputDim_);
-
-  // Determine if constraints should be added
-  if (isConstraintUpdateNeeded())
-  {
-    ROS_INFO_STREAM("Changing constraints...");
-    auto& softConstraintPtrCollection = mpc_->getSolverPtr()->getOptimalControlProblem().softConstraintPtr;
-    softConstraintPtrCollection->erase("StateInputLimitSoft");
-    softConstraintPtrCollection->add("StateInputLimitSoft", 
-                                     getLimitConstraints(leggedInterface_->getCentroidalModelInfo(),
-                                                         leggedInterface_->getPinocchioInterface(),
-                                                         leggedInterface_->getSwitchedModelReferenceManagerPtr()));
-  }
-
   size_t plannedMode = 0;
   bool mpc_updated_ = false;
   if (firstStartMpc_)
@@ -270,7 +265,7 @@ void LeggedController::update(const ros::Time& time, const ros::Duration& period
                            (hybridJointHandles_[j].getPositionDesired() - hybridJointHandles_[j].getPosition()) +
                        hybridJointHandles_[j].getKd() *
                            (hybridJointHandles_[j].getVelocityDesired() - hybridJointHandles_[j].getVelocity());
-  }
+    }
   //*********************** Set Joint Command: Torque Tracking Test *****************************//
 
   CommandData command_data;
@@ -302,13 +297,24 @@ void LeggedController::updateStateEstimation(const ros::Time& time, const ros::D
   vector3_t angularVel, linearAccel;
   matrix3_t orientationCovariance, angularVelCovariance, linearAccelCovariance;
 
+  std_msgs::Float64MultiArray torque_msg;
+  torque_msg.data.resize(10);
+
   for (size_t i = 0; i < hybridJointHandles_.size(); ++i)
   {
     jointPos(i) = hybridJointHandles_[i].getPosition();
     jointVel(i) = hybridJointHandles_[i].getVelocity();
     jointTor(i) = hybridJointHandles_[i].getEffort();
+    torque_msg.data[i] = jointTor(i);
   }
 
+  static std::chrono::steady_clock::time_point last_publish_time = std::chrono::steady_clock::now();
+  auto current_time = std::chrono::steady_clock::now();
+  if (current_time - last_publish_time > std::chrono::milliseconds(100)) {
+    torque_pub.publish(torque_msg);
+    last_publish_time = current_time;
+  }
+  
   cmdContactFlag = modeNumber2StanceLeg(
       mpcMrtInterface_->getReferenceManager().getModeSchedule().modeAtTime(currentObservation_.time));
   if (!firstStartMpc_)

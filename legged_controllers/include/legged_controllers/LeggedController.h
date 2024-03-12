@@ -151,6 +151,7 @@ private:
 
   InverseKinematics inverseKinematics_;
 
+  ros::Publisher torque_pub;
 
   
 /******************************************************************************************************/
