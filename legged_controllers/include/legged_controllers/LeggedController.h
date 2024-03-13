@@ -151,76 +151,8 @@ private:
 
   InverseKinematics inverseKinematics_;
 
-  ros::Publisher torque_pub;
-
+  ros::Publisher pos_pub_, vel_pub_, torque_pub_, body_pose_pub_, imu_pub_;
   
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-
-bool isConstraintUpdateNeeded() {
-  static bool last_go_straight = true;
-  auto vel = leggedInterface_->getSwitchedModelReferenceManagerPtr()->getCmdBodyVel();
-  if (vel[0] == 0 && vel[3] == 0) return false;
-  bool cur_go_straight = (vel[3] == 0.0 && vel[0] != 0.0);
-  bool updateNeeded = (last_go_straight != cur_go_straight);
-  last_go_straight = cur_go_straight;
-  return updateNeeded; 
-}
-
-std::unique_ptr<StateInputCost> getLimitConstraints(const CentroidalModelInfo& info, 
-                                                                      const PinocchioInterface& pinocchioInterface_, 
-                                                                      const std::shared_ptr<SwitchedModelReferenceManager> referenceManagerPtr_)
-{
-  const size_t totalContactDim = 3 * info.numThreeDofContacts + 6 * info.numSixDofContacts;
-  const int constraints_num = info.actuatedDofNum + info.actuatedDofNum + info.numThreeDofContacts;
-  vector_t e(constraints_num);
-  matrix_t C(constraints_num, info.stateDim);
-  matrix_t D(constraints_num, info.inputDim);
-  e.setZero();
-  C.setZero();
-  D.setZero();
-  C.topRightCorner(info.actuatedDofNum, info.actuatedDofNum).setIdentity();
-  D.block(info.actuatedDofNum, totalContactDim, info.actuatedDofNum, info.actuatedDofNum).setIdentity();
-  D(info.actuatedDofNum + info.actuatedDofNum + 0, 2) = 1;
-  D(info.actuatedDofNum + info.actuatedDofNum + 1, 5) = 1;
-  D(info.actuatedDofNum + info.actuatedDofNum + 2, 8) = 1;
-  D(info.actuatedDofNum + info.actuatedDofNum + 3, 11) = 1;
-  std::vector<std::unique_ptr<PenaltyBase>> state_input_limit_penalty;
-
-  state_input_limit_penalty.resize(constraints_num);
-  RelaxedBarrierPenalty::Config pos_limit_barrier_penalty_config(1, 0.1);
-  RelaxedBarrierPenalty::Config vel_limit_barrier_penalty_config(1, 0.1);
-  RelaxedBarrierPenalty::Config force_limit_barrier_penalty_config(0.1, 1);
-  const auto& model = pinocchioInterface_.getModel();
-    for (int j = 0; j < info.actuatedDofNum; j++)
-  {
-    state_input_limit_penalty[j] =
-        std::make_unique<DoubleSidedPenalty>(model.lowerPositionLimit(6 + j), model.upperPositionLimit(6 + j),
-                                             std::make_unique<RelaxedBarrierPenalty>(pos_limit_barrier_penalty_config));
-    state_input_limit_penalty[info.actuatedDofNum + j] =
-        std::make_unique<DoubleSidedPenalty>(-model.velocityLimit(6 + j), model.velocityLimit(6 + j),
-                                             std::make_unique<RelaxedBarrierPenalty>(vel_limit_barrier_penalty_config));
-    
-    // std::cout << referenceManagerPtr_->getCmdBodyVel()[3] << std::endl; 
-     
-    if (j == 0 || j == 5) {
-      if (referenceManagerPtr_->getCmdBodyVel()[3] == 0.0) {
-        state_input_limit_penalty[j] = std::make_unique<DoubleSidedPenalty>(-0.2, 0.2,
-                                            std::make_unique<RelaxedBarrierPenalty>(pos_limit_barrier_penalty_config));
-      }
-    }
-    
-  }
-  for (int leg = 0; leg < info.numThreeDofContacts; leg++)
-  {
-    state_input_limit_penalty[info.actuatedDofNum + info.actuatedDofNum + leg] = std::make_unique<DoubleSidedPenalty>(
-        0, 350, std::make_unique<RelaxedBarrierPenalty>(force_limit_barrier_penalty_config));
-  }
-
-  return std::make_unique<StateInputSoftConstraint>(std::make_unique<LinearStateInputConstraint>(e, C, D),
-                                                    std::move(state_input_limit_penalty));
-}
 
 };
 

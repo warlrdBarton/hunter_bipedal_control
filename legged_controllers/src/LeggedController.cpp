@@ -37,6 +37,7 @@ at www.bridgedp.com.
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <std_msgs/Float64MultiArray.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <chrono>
 
 
@@ -55,9 +56,6 @@ bool LeggedController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHand
   bool verbose = false;
   loadData::loadCppDataType(taskFile, "legged_robot_interface.verbose", verbose);
 
-  torque_pub = controller_nh.advertise<std_msgs::Float64MultiArray>("output_torque", 10);
-
-
   setupLeggedInterface(taskFile, urdfFile, referenceFile, verbose);
   setupMpc();
   setupMrt();
@@ -70,6 +68,21 @@ bool LeggedController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHand
       leggedInterface_->getPinocchioInterface(), leggedInterface_->getCentroidalModelInfo(), *eeKinematicsPtr_, nh);
   selfCollisionVisualization_.reset(new LeggedSelfCollisionVisualization(
       leggedInterface_->getPinocchioInterface(), leggedInterface_->getGeometryInterface(), pinocchioMapping, nh));
+
+
+  //////////////////////////////////////////////////////////////////////////////////
+  // TEST //
+  //////////////////////////////////////////////////////////////////////////////////
+
+  pos_pub_ = controller_nh.advertise<std_msgs::Float64MultiArray>("joint_position", 10);
+  vel_pub_ = controller_nh.advertise<std_msgs::Float64MultiArray>("joint_velocity", 10);
+  torque_pub_ = controller_nh.advertise<std_msgs::Float64MultiArray>("joint_torque", 10);
+
+  body_pose_pub_ = controller_nh.advertise<geometry_msgs::PoseStamped>("pose_stamped", 10);
+  imu_pub_ = controller_nh.advertise<std_msgs::Float64MultiArray>("imu", 10);
+
+  //////////////////////////////////////////////////////////////////////////////////
+
 
   rbdConversions_ = std::make_shared<CentroidalModelRbdConversions>(leggedInterface_->getPinocchioInterface(),
                                                                     leggedInterface_->getCentroidalModelInfo());
@@ -297,23 +310,36 @@ void LeggedController::updateStateEstimation(const ros::Time& time, const ros::D
   vector3_t angularVel, linearAccel;
   matrix3_t orientationCovariance, angularVelCovariance, linearAccelCovariance;
 
-  std_msgs::Float64MultiArray torque_msg;
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  std_msgs::Float64MultiArray torque_msg, pos_msg, vel_msg;
   torque_msg.data.resize(10);
+  pos_msg.data.resize(10);
+  vel_msg.data.resize(10);
 
   for (size_t i = 0; i < hybridJointHandles_.size(); ++i)
   {
     jointPos(i) = hybridJointHandles_[i].getPosition();
     jointVel(i) = hybridJointHandles_[i].getVelocity();
     jointTor(i) = hybridJointHandles_[i].getEffort();
+
+    pos_msg.data[i] = jointPos(i);
+    vel_msg.data[i] = jointVel(i);    
     torque_msg.data[i] = jointTor(i);
   }
 
-  static std::chrono::steady_clock::time_point last_publish_time = std::chrono::steady_clock::now();
-  auto current_time = std::chrono::steady_clock::now();
-  if (current_time - last_publish_time > std::chrono::milliseconds(100)) {
-    torque_pub.publish(torque_msg);
-    last_publish_time = current_time;
-  }
+  geometry_msgs::PoseStamped pose_stamped;
+  pose_stamped.header.frame_id = "odom";
+  pose_stamped.pose.position.x = currentObservation_.state(6);
+  pose_stamped.pose.position.y = currentObservation_.state(7);
+  pose_stamped.pose.position.z = currentObservation_.state(8);
+  pose_stamped.pose.orientation.x = 0.0;
+  pose_stamped.pose.orientation.y = 0.0;
+  pose_stamped.pose.orientation.z = 0.0;
+  pose_stamped.pose.orientation.w = 1.0;
+  pose_stamped.header.stamp = ros::Time::now(); 
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   cmdContactFlag = modeNumber2StanceLeg(
       mpcMrtInterface_->getReferenceManager().getModeSchedule().modeAtTime(currentObservation_.time));
@@ -329,15 +355,22 @@ void LeggedController::updateStateEstimation(const ros::Time& time, const ros::D
       leggedInterface_->getSwitchedModelReferenceManagerPtr()->getSwingTrajectoryPlanner()->threadSaftyGetStartStopTime(
           currentObservation_.time));
 
+
+  std_msgs::Float64MultiArray array;
+
+
   for (size_t i = 0; i < 4; ++i)
   {
     quat.coeffs()(i) = imuSensorHandle_.getOrientation()[i];
+    array.data.push_back(quat.coeffs()(i));
   }
 
   for (size_t i = 0; i < 3; ++i)
   {
     angularVel(i) = imuSensorHandle_.getAngularVelocity()[i];
     linearAccel(i) = imuSensorHandle_.getLinearAcceleration()[i];
+    array.data.push_back(angularVel(i));
+    array.data.push_back(linearAccel(i));
   }
 
   for (size_t i = 0; i < 9; ++i)
@@ -346,6 +379,24 @@ void LeggedController::updateStateEstimation(const ros::Time& time, const ros::D
     angularVelCovariance(i) = imuSensorHandle_.getAngularVelocityCovariance()[i];
     linearAccelCovariance(i) = imuSensorHandle_.getLinearAccelerationCovariance()[i];
   }
+
+  imu_pub_.publish(array);
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  static std::chrono::steady_clock::time_point last_publish_time = std::chrono::steady_clock::now();
+  auto current_time = std::chrono::steady_clock::now();
+  if (current_time - last_publish_time > std::chrono::milliseconds(100)) {
+    pos_pub_.publish(pos_msg);
+    vel_pub_.publish(vel_msg);
+    torque_pub_.publish(torque_msg);
+    body_pose_pub_.publish(pose_stamped);
+    ROS_INFO_STREAM("current Height: " << currentObservation_.state(8));
+
+
+
+    last_publish_time = current_time;
+  }
+  //////////////////////////////////////////////////////////////////////////////////////////////////
 
   stateEstimate_->updateJointStates(jointPos, jointVel);
   stateEstimate_->updateContact(cmdContactFlag);
