@@ -10,6 +10,8 @@ An open source bipedal robot control framework, based on non-linear MPC and WBC,
 
 - [ROS1-Noetic](http://wiki.ros.org/noetic)
 
+- [LivelyBot](https://github.com/HBUTHUANGPX/livelybot_robot)
+
 ### Clone and Build
 
 ```shell
